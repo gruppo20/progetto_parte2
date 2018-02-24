@@ -1,0 +1,152 @@
+comment "//" ;
+comment "/*" "*/" ;
+
+-- Entrypoints
+entrypoints Program, Stmt, RExpr, LExpr ;
+
+rules Boolean ::= "true" | "false" ;
+
+-- Right expressions
+coercions RExpr 14 ;
+
+-- Operazioni booleane
+OrOp.				RExpr 	::= RExpr "||" RExpr1 ;
+AndOp.				RExpr1	::= RExpr1 "&&" RExpr2 ;
+NotOp.				RExpr2	::= "!" RExpr3 ;
+
+EqOp.       		RExpr5	::= RExpr6 "==" RExpr6 ;
+NeqOp.        		RExpr5  ::= RExpr6 "!=" RExpr6 ;
+LtOp.         		RExpr5  ::= RExpr6 "<"  RExpr6 ;
+LtEOp.        		RExpr5  ::= RExpr6 "<=" RExpr6 ;
+GtOp.         		RExpr5  ::= RExpr6 ">"  RExpr6 ;
+GtEOp.        		RExpr5 	::= RExpr6 ">=" RExpr6 ; 
+
+-- Operazioni aritmetiche
+AddOp.     		   	RExpr7  ::= RExpr7 "+" RExpr8 ;
+SubOp.				RExpr7  ::= RExpr7 "-" RExpr8 ;
+MulOp.       		RExpr8  ::= RExpr8 "*" RExpr9 ;
+DivOp.        		RExpr8  ::= RExpr8 "/" RExpr9 ;
+ModOp.      		RExpr8  ::= RExpr8 "%" RExpr9 ;     
+NegOp.        		RExpr11 ::= "-" RExpr12 ;
+
+-- Operazioni con puntatori
+RefOp.        		RExpr11 ::= "&" LExpr ;
+
+-- Chiamata di funzione
+FCall.      		RExpr12 ::= FunCall ;
+
+-- Singoli valori
+Int.        		RExpr13 ::= Integer ;
+Char.       		RExpr13 ::= Char ;
+String.    			RExpr13 ::= String ;
+Real.     			RExpr13 ::= TFloat ;
+Bool.      			RExpr13 ::= Boolean ;
+
+-- Uso di variabili
+Lexpr.     			RExpr14 ::= LExpr ;
+
+-- Uso della chiamata di funzione
+Call.       		FunCall ::= Ident "(" [RExpr] ")" ;
+WIntCall.           FunCall ::= WriteIntPP "(" RExpr ")" ;
+WFloatCall.         FunCall ::= WriteFloatPP "(" RExpr ")" ;
+WCharCall.          FunCall ::= WriteCharPP "(" RExpr ")" ;
+WStringCall.        FunCall ::= WriteStringPP "(" RExpr ")" ;
+RIntCall.           FunCall ::= ReadIntPP "(" ")" ;
+RFloatCall.         FunCall ::= ReadFloatPP "(" ")" ;
+RCharCall.          FunCall ::= ReadCharPP "(" ")" ;
+RStringCall.        FunCall ::= ReadStringPP "(" ")" ;
+
+separator RExpr "," ;
+
+
+-- Left expressions
+coercions LExpr 2 ;
+
+-- Operazioni su variabili
+PreInc.     		LExpr ::= "++" LExpr1 ;
+PreDecr.    		LExpr ::= "--" LExpr1 ;
+
+PostInc.    		LExpr1 ::= LExpr2 "++" ;
+PostDecr.   		LExpr1 ::= LExpr2 "--" ;
+
+-- Basic Left Expression
+BasLExpr.  			LExpr2 ::= BLExpr ;
+
+-- Operazioni di selezione
+ArrayEl.   			BLExpr ::= BLExpr "[" RExpr "]" ;
+Id.         		BLExpr ::= Ident ;
+Deref.      		BLExpr ::= "*" BLExpr;
+
+-- Struttura del programma
+Progr.				Program ::= [Constanct] [Declar] ;
+separator Declar "" ;
+
+-- Dichiarazione di variabili e costanti
+VarDecl.			Declar ::= Type [MoreVar] ";" ;
+VarInit.			MoreVar ::= Ident Init ;
+rules Init ::= {-empty-} | "=" ComplexRExpr ;
+Const.				Constanct ::= "#define" Ident RExpr13 ;
+separator Constanct "" ;
+
+separator nonempty MoreVar "," ;
+
+-- Espressioni o array
+Simple.     		ComplexRExpr ::= RExpr ;
+Array.       		ComplexRExpr ::= "[" [ComplexRExpr] "]" ;
+separator nonempty ComplexRExpr "," ;
+
+-- Dichiarazioni di funzioni o procedure
+FunDecl.			Declar ::= "void" Ident "(" [Parameter] ")" ";" ;
+ProcDecl.			Declar ::= "void" Ident "(" [Parameter] ")" BlockStmt ;
+
+-- Tipi
+BasType.			Type ::= BasicType ;
+rules BasicType ::= "bool" | "char" | "float" | "int" | "string";
+
+CompType.			Type ::= CompositeType ;
+ArrDef.     		CompositeType ::= Type "[" RExpr "]" ;
+ArrNoDef.     		CompositeType ::= Type "[" "]" ;
+Pointer.    		CompositeType ::= Type "*" ;
+
+-- Parametri di funzioni e procedure
+separator Parameter "," ;
+Param.				Parameter ::= Type Ident ;
+
+-- Blocco principale di una procedura
+ProcBlock.			BlockStmt ::= "{" [Declar] [Stmt] "}" ;
+ 
+-- Statments
+separator Stmt "" ;
+
+MoreDecl.     		Stmt ::= Declar ;
+ProcCall.  			Stmt ::= FunCall ";" ;
+IndIter.     		Stmt ::= WhileStmt ;
+Cond.        		Stmt ::= ConditionStmt ;
+Assgn.      		Stmt ::= BLExpr Assignment_op RExpr ";" ;
+LExprStmt.  		Stmt ::= LExpr ";" ;
+
+-- Assegnamenti
+Assign.     		Assignment_op ::= "=" ;
+AssgnMul.   		Assignment_op ::= "*=" ;
+AssgnAdd.   		Assignment_op ::= "+=" ;
+AssgnDiv.  			Assignment_op ::= "/=" ;
+AssgnSub.   		Assignment_op ::= "-=" ;
+
+-- Condizioni e cicli
+IfNoElse.   		ConditionStmt ::= "if" "(" RExpr ")" BlockStmt;
+IfYesElse.     		ConditionStmt ::= "if" "(" RExpr ")" BlockStmt "else" BlockStmt ;
+
+While.        		WhileStmt ::= "while" "(" RExpr ")" BlockStmt ;
+
+-- Tokens
+position token TFloat (digit+ '.' digit+ ) ;
+
+position token WriteIntPP ({"writeInt"}) ;
+position token WriteFloatPP ({"writeFloat"}) ;
+position token WriteCharPP ({"writeChar"}) ;
+position token WriteStringPP ({"writeString"}) ;
+
+position token ReadIntPP ({"readInt"}) ;
+position token ReadFloatPP ({"readFloat"}) ;
+position token ReadCharPP ({"readChar"}) ;
+position token ReadStringPP ({"readString"}) ;
