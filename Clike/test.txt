@@ -13,7 +13,7 @@ void prova2(char pluto, string t);
 int k = 3;
 
 void main() {
-	int i;
+	int i, h;
 	bool b = true;
 	void prova3() {
 		while(b) {
@@ -33,7 +33,7 @@ void main() {
 }
 
 void prova(int pippo) {
-	float p = pippo;
+	float p = pippo, p2 = 1.5;
 }
 
 void prova2(char pluto, string t) {
