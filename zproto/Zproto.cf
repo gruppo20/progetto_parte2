@@ -1,0 +1,138 @@
+--Grammatica inziale per un linguaggio C-like
+
+comment "//" ;
+comment "/*" "*/" ;
+
+entrypoints Program, Main, Stmt, RExpr, LExpr ; 
+
+Progr.                       Program ::= [Constants] [Functions] Main "{" PBody "}" [Procedures] ;
+
+MainF.						 Main ::= "main()" ;
+
+separator Variables ";" ;
+
+NoVar.                       Variables ::= {- empty -} ;
+VarBlock.                    Variables ::= Type Name Initialization ;
+
+NoInit.                      Initialization ::= {- empty -} ;
+YesInit.                     Initialization ::= "=" RExpr ;
+
+separator Constants ";" ;
+NoConst.                     Constants ::= {- empty -} ;
+ConstBlock.                  Constants ::= "#define" Name RExpr ;
+
+separator Functions ";" ;
+
+NoFun.                       Functions  ::= {- empty -} ;
+FunBlock.                    Functions  ::= "void" Name ParamsIn ;					
+
+separator Procedures ";" ;
+NoProc.                      Procedures  ::= {- empty -} ;
+ProcBlock.                   Procedures  ::= "void" Name ParamsIn "{" PBody "}" ;
+
+separator ParamIn "," ;
+ParamsIng.                   ParamsIn ::= "(" [ParamIn] ")" ;
+NoParamIng.				 	 ParamIn ::= {- empty -} ;
+YesParamIng.                 ParamIn ::= Type  Name ;
+
+NoProcBody.					 PBody ::= {- empty -} ;
+ProcBody.                    PBody ::= [Variables] [Procedures] [Stmt] ;
+
+coercions RExpr 8;
+separator RExpr "," ;
+
+Add.                         RExpr5 ::= RExpr5 "+" RExpr6 ;
+Sub.                         RExpr5 ::= RExpr5 "-" RExpr6 ;
+Mul.                         RExpr6 ::= RExpr6 "*" RExpr7 ;
+Div.                         RExpr6 ::= RExpr6 "/" RExpr7 ;
+Mod.                         RExpr6 ::= RExpr6 "%" RExpr7 ;
+
+Or.	       	             	RExpr1 ::= RExpr1 "||" RExpr2 ;
+And.		             	RExpr2 ::= RExpr2 "&&" RExpr3 ;
+Not.                     	RExpr7 ::= "!" RExpr7 ;
+
+Eq.	          	     		RExpr3 ::= RExpr3 "==" RExpr4 ;
+NEq.	                    RExpr3 ::= RExpr3 "!=" RExpr4 ;
+Lt.		             		RExpr4 ::= RExpr4 "<" RExpr5 ;
+LEq.	    	            RExpr4 ::= RExpr4 "<=" RExpr5 ;
+Gt.		             		RExpr4 ::= RExpr4 ">" RExpr5 ;
+GEq.		             	RExpr4 ::= RExpr4 ">=" RExpr5 ;
+
+RexprCall.                   RExpr7 ::= FunCall ;
+ArrayElems.                  RExpr7 ::= "[" [RExpr] "]" ;
+AddrOf.                      RExpr7 ::= "&" LExpr ;
+
+SubExpr.                     RExpr7 ::= "-" RExpr7 ;
+AddExpr.                     RExpr7 ::= "+" RExpr7 ;
+
+Lexpr.                       RExpr8 ::= LExpr ;
+Integer.                     RExpr8 ::= TInteger;
+Float.                       RExpr8 ::= TFloat ;
+Char.                        RExpr8 ::= TChar ;
+String.                      RExpr8 ::= TString ;
+Bool.                        RExpr8 ::= TBool ;
+
+separator Stmt ";" ;
+
+FCall.                       Stmt ::= FunCall ;
+
+Assgn.                       Stmt ::= LExpr AssOp RExpr ;
+AssignEq.                    AssOp ::= "=" ;
+AssignEqAdd.                 AssOp ::= "+=" ;
+AssignEqSub.                 AssOp ::= "-=" ;
+
+Break.                       Stmt ::= BreakInst ;
+
+While.                       Stmt ::= "while" "(" RExpr ")" "{" [Stmt] "}" ;
+
+If.                          Stmt ::= "if" "(" RExpr ")" "{" [Stmt] "}" MaybeElse ;
+NoElse.                      MaybeElse ::= {- empty -} ;
+Else.                        MaybeElse ::= "else" "{" [Stmt] "}" ;
+
+SetName.                     FunCall ::= Name "(" [RExpr] ")" ;
+WIntCall.                    FunCall ::= WriteIntPP "(" RExpr ")" ;
+WFloatCall.                  FunCall ::= WriteFloatPP "(" RExpr ")" ;
+WCharCall.                   FunCall ::= WriteCharPP "(" RExpr ")" ;
+WStringCall.                 FunCall ::= WriteStringPP "(" RExpr ")" ;
+RIntCall.                    FunCall ::= ReadIntPP "(" ")" ;
+RFloatCall.                  FunCall ::= ReadFloatPP "(" ")" ;
+RCharCall.                   FunCall ::= ReadCharPP "(" ")" ;
+RStringCall.                 FunCall ::= ReadStringPP "(" ")" ;
+
+ElemAt.                      LExpr ::= LExpr "[" RExpr "]" ;
+Var.                         LExpr1 ::= Name ;
+
+coercions LExpr 1 ;
+
+position token Name ( letter (letter | digit )*) ;
+position token TInteger(digit+) ;
+position token TFloat (digit+ '.' digit+ ) ;
+position token TChar ('\'' ((char - ["'\\"]) | ('\\' ["'\\nt"])) '\'') ;
+position token TString ('"' ((char - ["\"\\"]) | ('\\' ["\"\\nt"]))* '"') ;
+position token TBool ({"true"} | {"false"})  ;
+
+position token BreakInst ({"break"}) ;
+position token ContinueInst ({"continue"}) ;
+
+position token WriteIntPP ({"writeInt"}) ;
+position token WriteFloatPP ({"writeFloat"}) ;
+position token WriteCharPP ({"writeChar"}) ;
+position token WriteStringPP ({"writeString"}) ;
+
+position token ReadIntPP ({"readInt"}) ;
+position token ReadFloatPP ({"readFloat"}) ;
+position token ReadCharPP ({"readChar"}) ;
+position token ReadStringPP ({"readString"}) ;
+
+TArray.                      Type ::= BasicType "[" MaybeLenght "]" ;
+NoLenght.                    MaybeLenght ::= {- empty -} ;
+YesLenght.                   MaybeLenght ::= RExpr ;
+
+TPunt.                       Type ::= BasicType  "*" ;
+
+TBasic.                      Type ::= BasicType ;
+BTBool.                      BasicType ::= "bool" ;
+BTChar.                      BasicType ::= "char" ;
+BTString.                    BasicType ::= "string" ;
+BTFloat.                     BasicType ::= "float" ;
+BTInt.                       BasicType ::= "int" ;
