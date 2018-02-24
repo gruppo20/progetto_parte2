@@ -1,0 +1,32 @@
+#define CONST 5;
+#define CONST1 5;
+#define CONST2 5;
+
+/*
+	commento multiline
+	possibile descrizione delle funzioni
+*/
+	
+void prova(int pippo);
+void prova2(char pluto, string t);
+
+main() {
+	int i;
+	bool b = true;
+	void prova3() {
+		while(b) {
+			i = i+1;
+		};
+	};
+	
+	prova(i);
+	prova2('p', "t");
+};
+
+void prova(int pippo) {
+	float p = pippo;
+};
+
+void prova2(char pluto, string t) {
+	//questo è un commento monoriga
+};
