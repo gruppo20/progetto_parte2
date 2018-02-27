@@ -17,8 +17,12 @@ Clike: compile
 clean:
 	rm *.hi *.o
 	
-demo: test.txt
-	./Clike test.txt
+cleandist:
+	rm Clike LexClike.hs ParClike.hs
+
+FILES = $(wildcard Tests/*.txt)
+demo: 
+	 $(foreach var, $(FILES), ./Clike $(var);)
 	
 .PHONY: compile Clike clean demo
 

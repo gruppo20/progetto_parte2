@@ -119,10 +119,16 @@ checkDef env st =
     ProcDecl id par stmt (line,_) -> checkProc env id par stmt
     VarDecl typ more (line,_) -> do foldM (addMoreVar typ line) env more
 
+-- controllo inizializzazione variabili
 addMoreVar :: Type -> Int -> Env -> MoreVar -> Err Env
 addMoreVar typ line env more = 
   case more of
-    VarInit id _ -> addVar typ line env id
+    VarInit id init -> 
+      case init of
+        Init1 -> addVar typ line env id
+        Init2 exp -> do 
+          checkExp env line typ exp
+          addVar typ line env id
     
 -- Risoluzione di dichiarazioni di costante
 checkCon :: Env -> Constanct -> Err Env
@@ -247,7 +253,7 @@ checkStmt b env st = case st of
     Assign -> do
       (typ, b) <- inferBLExpr env line bexpr 
       if b == False
-        then throwError line False $ "Variable (" ++ printTree bexpr ++ ") is a constant"
+        then throwError line True $ "Variable (" ++ printTree bexpr ++ ") is a constant"
         else do
           checkExp env line typ (Simple exp)
           Ok env
@@ -260,7 +266,7 @@ checkStmt b env st = case st of
 checkAssgNumeric env line bexpr exp = do
   (typ, b) <- inferBLExpr env line bexpr
   if b == False
-    then throwError line False $ "Variable (" ++ printTree bexpr ++ ") is a constant"
+    then throwError line True $ "Variable (" ++ printTree bexpr ++ ") is a constant"
     else
       if (elem typ [BasType BasicType_int, BasType BasicType_float]) 
         then do
@@ -280,8 +286,11 @@ checkParam id line exp typ env =
         
 -- Ricerca di una variabile nell'ambiente locale e non locale
 lookVar :: Env -> Int -> Ident -> Err (Type, Bool)
-lookVar ((_,_,ctx,_):xs) line id = case M.lookup id ctx of
-  Nothing -> lookVar xs line id
+lookVar ((con,_,ctx,_):xs) line id = case M.lookup id ctx of
+  Nothing ->
+    case M.lookup id con of
+      Nothing -> lookVar xs line id
+      Just typ -> Ok (typ, False)
   Just typ -> Ok (typ, True)
 lookVar [] line id = throwError line False $ "Variable (" ++ printTree id ++ ") not declared"
 
@@ -331,10 +340,19 @@ inferExp env x = case x of
     DivOp e1 e2 (line,_) -> inferNumericBin env line e1 e2
 
     -- Fun Call
-    FCall (Call id exp (line,_)) -> do
-      (typs) <- lookFun env line id
-      checkParam id line exp typs env
-      Ok $ BasType BasicType_void
+    FCall fcall -> case fcall of
+      Call id exp (line,_) -> do
+        (typs) <- lookFun env line id
+        checkParam id line exp typs env
+        Ok $ BasType BasicType_void
+      WIntCall id exp -> Ok $ BasType BasicType_void
+      WFloatCall id exp -> Ok $ BasType BasicType_void
+      WCharCall id exp -> Ok $ BasType BasicType_void
+      WStringCall id exp -> Ok $ BasType BasicType_void
+      RIntCall id -> Ok $ BasType BasicType_int
+      RFloatCall id -> Ok $ BasType BasicType_float
+      RCharCall id -> Ok $ BasType BasicType_char
+      RStringCall id -> Ok $ BasType BasicType_string
 
     -- LExpr
     Lexpr lexp -> case lexp of 
