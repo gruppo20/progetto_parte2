@@ -85,7 +85,7 @@ separator Declar "" ;
 VarDecl.			Declar ::= Type [MoreVar] ";" ;
 VarInit.			MoreVar ::= Ident Init ;
 rules Init ::= {-empty-} | "=" ComplexRExpr ;
-Const.				Constanct ::= "#define" Ident RExpr13 ;
+Const.				Constanct ::= "#define" Ident Type RExpr13 ;
 separator Constanct "" ;
 
 separator nonempty MoreVar "," ;
@@ -101,7 +101,7 @@ ProcDecl.			Declar ::= "void" Ident "(" [Parameter] ")" BlockStmt ;
 
 -- Tipi
 BasType.			Type ::= BasicType ;
-rules BasicType ::= "bool" | "char" | "float" | "int" | "string";
+rules BasicType ::= "bool" | "char" | "float" | "int" | "string" | "void";
 
 CompType.			Type ::= CompositeType ;
 ArrDef.     		CompositeType ::= Type "[" RExpr "]" ;

@@ -1,22 +1,24 @@
-all: TestClike
+all: compile Clike
 	
-bnfc: Clike.cf
-	bnfc -haskell Clike.cf
-	
-ParClike.y: bnfc
+ParClike: ParClike.y LexClike.hs
 	happy -gca ParClike.y
 	
-LexClike.x: bnfc ParClike.y
+LexClike: LexClike.x 
 	alex -g LexClike.x
 	
-TestClike: ParClike.y LexClike.x
+compile: LexClike ParClike
+	
+TestClike: compile
 	ghc --make TestClike.hs -o TestClike
 	
+Clike: compile
+	ghc --make Clike.hs -o Clike
+	
 clean:
-	rm *.hi *.o DocClike.txt
+	rm *.hi *.o
 	
-demo: test.txt
-	./TestClike < test.txt
+demo: Clike test.txt
+	./Clike test.txt
 	
-.PHONY: TestClike clean demo
+.PHONY: compile Clike clean demo
 
