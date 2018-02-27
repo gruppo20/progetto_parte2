@@ -17,7 +17,7 @@ Clike: compile
 clean:
 	rm *.hi *.o
 	
-demo: Clike test.txt
+demo: test.txt
 	./Clike test.txt
 	
 .PHONY: compile Clike clean demo

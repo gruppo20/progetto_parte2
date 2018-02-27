@@ -8,9 +8,11 @@
 	commento multiline
 	possibile descrizione delle funzioni
 */
-	
+
+void main();
 void prova(int pippo);
 void prova2(char pluto, string t);
+void prova3();
 
 int k = 3;
 

@@ -80,24 +80,28 @@ extendDecl env@((con,sig,ctx,pro):xs) decl =
         Just _ -> throwError line True $ "Function (" ++ printTree id ++ ") was already declared"
     (ProcDecl id par _ (line,_)) ->
       case M.lookup id $ M.union pro defFun of
-        Nothing -> 
-          case M.lookup id sig of
-            Nothing -> throwError line False $ "Function (" ++ printTree id ++ ") was not previously declared"
-            Just typ -> return ((con, sig, ctx, addPro pro id par):xs)
+        Nothing -> lookFunDef env line id env
         Just _ -> throwError line True $ "Procedure (" ++ printTree id ++ ") was already declared"
     _ -> Ok env
+    
+-- Ricerca di una funzione nell'ambiente locale e non locale
+lookFunDef :: Env -> Int -> Ident -> Env -> Err Env
+lookFunDef ((_,sig,_,_):xs) line id e = case M.lookup id sig of
+  Nothing -> lookFunDef xs line id e
+  Just typ -> Ok e
+lookFunDef [] line id e = throwError line False $ "Function (" ++ printTree id ++ ") was not previously declared"
     
 -- Aggiunta della dichiarazione di una funzione all'ambiente
 addFun :: Sig -> Ident -> [Parameter] -> Sig
 addFun sig id p = M.insert id (foldl addParam [] p) sig
   where
-    addParam l (Param typ _) = typ:l
+    addParam l (Param typ _) = l ++ [typ]
     
 -- Aggiunta della dichiarazione di una procedura all'ambiente
 addPro :: Pro -> Ident -> [Parameter] -> Sig
 addPro pro id p = M.insert id (foldl addParam [] p) pro
   where
-    addParam l (Param typ _) = typ:l
+    addParam l (Param typ _) = l ++ [typ]
     
 -- Aggiunta variabile all'ambiente
 addVar :: Type -> Int -> Env -> Ident -> Err Env
@@ -200,7 +204,9 @@ checkInside env (ProcBlock decl stmt) = do
 -- Controllo degli statement
 checkStmt:: Bool -> Env -> Stmt -> Err Env
 checkStmt b env st = case st of
-
+  -- Altre Dichiarazioni 
+  MoreDecl decl -> do checkDef env decl
+  
   -- Chiamata funzione
   ProcCall (Call id exp (line, _)) -> do
     (typ) <- lookFun env line id
