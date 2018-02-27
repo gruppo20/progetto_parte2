@@ -1,0 +1,25 @@
+#define CONST int 5
+
+/*
+	commento multiline
+	possibile descrizione delle funzioni
+*/
+
+void main();
+void prova2(char pluto, string t);
+
+int k = 3;
+
+void main() {
+	int i, h;
+	bool b = true;
+	
+	prova2(2, "t");
+	
+	char[4] str = ['c','i','a','o'];
+	float f = "stringa";
+	
+	i++;
+	k = i + 2;
+	int j = readInt();
+}

@@ -1,0 +1,7 @@
+#define CONST int 5
+
+void main();
+
+void main() {
+	CONST += 5;
+}
